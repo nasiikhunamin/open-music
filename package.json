@@ -7,7 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon ./src/server.js",
     "lint": "eslint ./src",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "migrate": "node-pg-migrate"
   },
   "keywords": [],
   "author": "",
@@ -20,6 +21,12 @@
     "nodemon": "^3.1.10"
   },
   "dependencies": {
-    "@hapi/hapi": "^21.4.0"
+    "@hapi/hapi": "^21.4.0",
+    "auto-bind": "^5.0.1",
+    "dotenv": "^17.2.1",
+    "joi": "^17.13.3",
+    "nanoid": "^5.1.5",
+    "node-pg-migrate": "^8.0.3",
+    "pg": "^8.16.3"
   }
 }
