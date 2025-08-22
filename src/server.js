@@ -2,6 +2,8 @@ require('dotenv').config();
 
 const Hapi = require('@hapi/hapi');
 const Jwt = require('@hapi/jwt');
+const Inert = require('@hapi/inert');
+const path = require('path');
 const ClientError = require('./exceptions/ClientError');
 
 const albums = require('./api/albums');
@@ -33,6 +35,9 @@ const _exports = require('./api/exports');
 const ProducerService = require('./services/rabbitmq/ProducerService');
 const ExportsValidator = require('./validator/exports');
 
+const StorageService = require('./services/storage/StorageService');
+const UploadsValidator = require('./validator/uploads');
+
 const init = async () => {
   const albumsService = new AlbumsService();
   const songsService = new SongsService();
@@ -40,6 +45,9 @@ const init = async () => {
   const authenticationsService = new AuthenticationsService();
   const collaborationsService = new CollaborationsService();
   const playlistsService = new PlaylistsService(collaborationsService);
+  const storageService = new StorageService(
+    path.resolve(__dirname, 'assets/upload/images'),
+  );
 
   const server = Hapi.server({
     port: process.env.PORT,
@@ -54,6 +62,9 @@ const init = async () => {
   await server.register([
     {
       plugin: Jwt,
+    },
+    {
+      plugin: Inert,
     },
   ]);
 
@@ -78,7 +89,9 @@ const init = async () => {
       plugin: albums,
       options: {
         service: albumsService,
+        storageService,
         validator: AlbumsValidator,
+        uploadsValidator: UploadsValidator,
       },
     },
     {
@@ -135,7 +148,6 @@ const init = async () => {
     const { response } = request;
 
     if (response instanceof Error) {
-      // penanganan client error secara internal.
       if (response instanceof ClientError) {
         const newResponse = h.response({
           status: 'fail',
@@ -145,21 +157,18 @@ const init = async () => {
         return newResponse;
       }
 
-      // mempertahankan penanganan client error oleh hapi secara native, seperti 404, etc.
       if (!response.isServer) {
         return h.continue;
       }
 
-      // penanganan server error sesuai kebutuhan
       const newResponse = h.response({
         status: 'error',
         message: 'terjadi kegagalan pada server kami',
-        error: response.message, // menampilkan pesan error
       });
       newResponse.code(500);
       return newResponse;
     }
-    // jika bukan error, lanjutkan dengan response sebelumnya (tanpa terintervensi)
+
     return h.continue;
   });
 
