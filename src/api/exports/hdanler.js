@@ -15,7 +15,6 @@ class ExportsHandler {
     const { playlistId } = request.params;
     const { targetEmail } = request.payload;
 
-    // Verifikasi kepemilikan playlist
     await this._playlistsService.verifyPlaylistOwner(playlistId, userId);
 
     const message = {

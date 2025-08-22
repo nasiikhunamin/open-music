@@ -85,9 +85,7 @@ class AlbumsHandler {
   async postAlbumLikeHandler(request, h) {
     const { id: albumId } = request.params;
     const { id: userId } = request.auth.credentials;
-
     await this._service.addAlbumLike(albumId, userId);
-
     const response = h.response({
       status: 'success',
       message: 'Berhasil menyukai album',
@@ -99,9 +97,7 @@ class AlbumsHandler {
   async deleteAlbumLikeHandler(request) {
     const { id: albumId } = request.params;
     const { id: userId } = request.auth.credentials;
-
     await this._service.deleteAlbumLike(albumId, userId);
-
     return {
       status: 'success',
       message: 'Berhasil batal menyukai album',
@@ -110,14 +106,17 @@ class AlbumsHandler {
 
   async getAlbumLikesHandler(request, h) {
     const { id: albumId } = request.params;
-    const likes = await this._service.getAlbumLikes(albumId);
+    const { count, fromCache } = await this._service.getAlbumLikes(albumId);
 
     const response = h.response({
       status: 'success',
       data: {
-        likes,
+        likes: count,
       },
     });
+    if (fromCache) {
+      response.header('X-Data-Source', 'cache');
+    }
     return response;
   }
 }
